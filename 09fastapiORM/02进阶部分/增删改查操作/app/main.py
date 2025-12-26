@@ -15,7 +15,7 @@ app = FastAPI()
 register_tortoise(
     app,
     config=Tortoise_orm,
-    generate_schemas=True,
+    generate_schemas=True,#tips:这是一定要写的
     add_exception_handlers=True
 )
 
@@ -109,14 +109,18 @@ async def get_student_by_id(id: int):
     stu = await Student.get(id=id)
     return stu
 
+@app.get('/stu',response_model=list[Stu],description='多条查询')
+async def get_stu_list(name:str):
+    stu = await Student.filter(name=name).all()
+    return stu
 
-@app.get('/stus', description='查询学生信息', response_model=list[Stu])
-async def get_stu(name:str):  # tips:一个查询参数id,如果输入就查询单个学生，否则查询多个
+
+@app.get('/stus', description='模糊查询学生信息', response_model=list[Stu])
+async def get_stu(name:str): #tips:模糊查询
     allstu = await Student.filter(name__contains=name)
     return allstu
 
-
-@app.get('/stu',description='模糊查询',response_model=list[Stu])
-async def get_stu():
-    stu = await Student.get()
-    return stu
+@app.get('/stuall',description='获取全部学生',response_model=list[Stu])
+async def getallstu():
+    allstu=await Student.all()
+    return allstu

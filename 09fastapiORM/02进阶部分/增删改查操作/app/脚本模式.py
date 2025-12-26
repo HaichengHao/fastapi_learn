@@ -35,17 +35,28 @@ async def update_student(id:int,name:str=None,age:int=None,email:str=None):
         stu.save()
         return True
 
-#tips:定义数据查询函数
-async def get_allstudent(id:int|None=None):
-    if id:
-        stu=await Student.filter(id=id).first()
-        return stu
-    allstu=await Student.all()
+#tips:获取单条数据
+async def get_stu(id:int)->Student:
+    stu = await Student.get(id=id)
+    return stu
+
+#tips:获取多条数据
+async def get_manystu(name:str)->list[Student]:
+    manystu=await Student.filter(name=name).all()
+    return manystu
+#tips:获取所有数据
+async def get_allstu()->list[Student]:
+    allstu  = await Student.all()
     return allstu
+
 
 #tips:模糊查询
 async def get_student(name:str):
     stu=await Student.filter(name__contains=name)
+    return stu
+#tips:多条件模糊查询
+async def get_allstudent(name:str,age:int)->list[Student]:
+    stu=await Student.filter(name__contains=name,age=age).all()
     return stu
 
 
@@ -79,6 +90,11 @@ async def main():
         email='wangwu@qq.com' #tips:这里写是为了测试唯一约束
     )
     print(f'创建成功{stu3.name},{stu3.email}')
+
+    allstu=await get_allstu() #tips:获取所有
+    manystu=await get_manystu(name='王三') #tips:获取多条
+    stu = await get_stu(id=1)#tips:获取指定id对应的单条数据
+    somestu=await get_student(name='王') #tips:模糊查询
 
 
 if __name__ == '__main__':
