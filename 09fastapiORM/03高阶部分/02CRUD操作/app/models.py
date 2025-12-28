@@ -32,7 +32,7 @@ class Student(Model):
 class StudentProfile(Model):
     pfid:int=fields.IntField(pk=True)
     address:str=fields.CharField(max_length=50) #档案保存地址
-    phonenum:str=fields.IntField(validators=[phonevalidator])
+    phonenum:str=fields.CharField(max_length=11,validators=[phonevalidator])
 
 #多对多关系
 #tips:课程表

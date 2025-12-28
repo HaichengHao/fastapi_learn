@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>hello</title>
+    <style>
+        table{
+            border-collapse: collapse;
+            border: 1px solid   black;
+        }
+        th,tr{
+            border: 0.3px solid  orange;
+        }
+        td{
+            border: 0.5px solid black;
+        }
+    </style>
+</head>
+<body>
+<h1>
+    测试标题
+</h1>
+<p>
+    {{all_stu}}
+</p>
+<ul>
+    {% for stu in all_stu.items %}
+    <li>{{stu}}</li>
+    {% endfor %}
+</ul>
+
+<table>
+    <thead>
+        <tr>
+            <th>id</th>
+            <th>姓名</th>
+            <th>年龄</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for stu in all_stu.items %}
+            <tr>
+                <td>
+                    {{stu.stuid}}
+                </td>
+                <td>
+                    {{stu.name}}
+                </td>
+                <td>
+                    {{stu.age}}
+                </td>
+            </tr>
+        {% endfor %}
+
+    </tbody>
+</table>
+</body>
+</html>

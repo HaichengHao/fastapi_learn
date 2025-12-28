@@ -58,6 +58,19 @@ async def get_student(name:str):
 async def get_allstudent(name:str,age:int)->list[Student]:
     stu=await Student.filter(name__contains=name,age=age).all()
     return stu
+#tips:查询单列数据，譬如select name  from Students;这个用orm怎么写呢？
+async def getname():
+    stu=await Student.all().values('name')
+    return stu
+async def getstus():
+    stus=await Student.filter(id__gt=1).all() #tips：查询学生id>1的所有学生
+    return stus
+async def getsturange():
+    stus=await Student.filter(id__range=[2,80]) #tips:查询id从2-80的所有学生
+    return stus
+async def getstuin():
+    stus=await Student.filter(id__in=[2,3,89])   #tips:查询id为2,3,89的三名学生
+    return stus
 
 
 async def init():
