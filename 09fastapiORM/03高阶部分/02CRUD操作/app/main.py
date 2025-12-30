@@ -103,13 +103,13 @@ async def get(request: Request) -> Page[BaseStuinfo]:
 
 @app.get('/stu/{stuid}', description='查询详细学生信息', response_model=Studentinfo)
 async def get_stu(stuid: int):
-    target_stu = await Student.get(stuid=stuid).prefetch_related('profile')
+    target_stu = await Student.get(stuid=stuid).prefetch_related('profile') #important:提前获取profile这一关联字段
     if not target_stu.profile:
         raise HTTPException(status_code=404, detail='学生档案未找到')
     return Studentinfo(
         name=target_stu.name,
         age=target_stu.age,
-        address=target_stu.profile.address,
+        address=target_stu.profile.address,#获取关联信息
         phone=target_stu.profile.phonenum
     )
 

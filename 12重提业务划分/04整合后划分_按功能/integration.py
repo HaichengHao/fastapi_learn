@@ -1,0 +1,120 @@
+# @Time    : 2025/12/30 10:39
+# @Author  : hero
+# @File    : 整合.py
+
+from fastapi  import FastAPI,APIRouter
+from pydantic import BaseModel
+
+from  fastapi.middleware.cors import CORSMiddleware
+from tortoise.contrib.fastapi import register_tortoise
+
+from tortoise import fields
+from tortoise.models import Model
+
+app = FastAPI()
+
+
+#tips:跨域配置
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+#tips:数据库设置
+from typing import Dict
+
+# tips:数据库配置 非常像django中的写法
+Tortoise_orm: Dict = {
+    'connections': {
+        'default': 'mysql://niko:HHCzio20@localhost:3306/fastapidb3'
+    },
+    'apps': {
+        'models': {
+            'models': ['integration', 'aerich.models'],  # tips 指定模型现在在哪里，这个是整合，所有都写一起了，所以就是当前这个文件
+            'default_connection': 'default',  # tips:指定使用我们上面定义的默认数据库连接
+        }
+    },
+    # important:连接池配置(推荐)
+    'use_tz': False,  # 是否使用时区
+    'timezone': 'UTC',  # 默认时区
+    'db_pool': {
+        'max_size': 10,  # 最大连接数
+        'min_size': 1,  # 最小连接数
+        'idle_timeout': 30,  # 空闲连接超时(秒)
+    }
+}
+register_tortoise(
+    app,
+    config=Tortoise_orm,
+    generate_schemas=True,
+    add_exception_handlers=True,
+)
+
+#tips:接口划分
+v1_router=APIRouter(prefix='/api/v1',tags=['v1版本接口'])
+
+user_router=APIRouter(tags=['用户接口'],prefix='/user')
+item_router=APIRouter(tags=['商品接口'],prefix='/item')
+
+v1_router.include_router(user_router)
+v1_router.include_router(item_router)
+
+app.include_router(v1_router)
+
+#tips:数据表设置
+class UserTB(Model):
+    id=fields.IntField(pk=True)
+    username=fields.CharField(max_length=32)
+    email=fields.CharField(max_length=64,unique=True)
+    age=fields.IntField(default=0)
+    created_at=fields.DatetimeField(auto_now_add=True)
+
+
+#tips:schema定义,输入输出校验
+class  Userschema(BaseModel):
+    username:str
+    email:str
+    age:int
+
+
+#tips:路由定义
+
+@user_router.post('/create')
+async def create_user(user:Userschema):
+    # await UserTB.create(
+    #     username=user.username,
+    #     email=user.email,
+    #     age=user.age
+    # )
+    #tips:其实这样写是有些麻烦的，我们可以用一个简单的方式,和上面的效果是一样的,
+    #important：⚠️但是这个有要求，就是schema字段的名称要和数据表字段的名称一致
+    user_new=await UserTB.create(
+        **user.model_dump()
+    )
+    return user_new
+
+#获取第一条用户的信息,
+#tips:前端可能不关心字段，所以像这个“第一条”测试，只需要返回部分字段检验成功与否
+@user_router.get('/info')
+async def get_user_info():
+    user = await UserTB.first() #tips:从数据表中读取第一条数据，要知道表UserTB字段有5个
+    user_schema=Userschema.model_validate(user.__dict__) #tips:但是返回的时候只返回Userschema中的3个
+    return user_schema
+
+
+
+
+#定义item的路由
+@item_router.get('/info')
+async def get_item_info():
+    return '商品信息'
+
+
+
+
+
+
