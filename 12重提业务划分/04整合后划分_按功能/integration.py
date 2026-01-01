@@ -1,8 +1,12 @@
 # @Time    : 2025/12/30 10:39
 # @Author  : hero
-# @File    : 整合.py
+# @File    : integration.py
+from urllib.request import Request
+
+import uvicorn
 
 from fastapi  import FastAPI,APIRouter
+from fastapi_pagination import response
 from pydantic import BaseModel
 
 from  fastapi.middleware.cors import CORSMiddleware
@@ -24,46 +28,23 @@ app.add_middleware(
 )
 
 
-#tips:数据库设置
-from typing import Dict
 
-# tips:数据库配置 非常像django中的写法
-Tortoise_orm: Dict = {
-    'connections': {
-        'default': 'mysql://niko:HHCzio20@localhost:3306/fastapidb3'
-    },
-    'apps': {
-        'models': {
-            'models': ['integration', 'aerich.models'],  # tips 指定模型现在在哪里，这个是整合，所有都写一起了，所以就是当前这个文件
-            'default_connection': 'default',  # tips:指定使用我们上面定义的默认数据库连接
-        }
-    },
-    # important:连接池配置(推荐)
-    'use_tz': False,  # 是否使用时区
-    'timezone': 'UTC',  # 默认时区
-    'db_pool': {
-        'max_size': 10,  # 最大连接数
-        'min_size': 1,  # 最小连接数
-        'idle_timeout': 30,  # 空闲连接超时(秒)
-    }
-}
-register_tortoise(
-    app,
-    config=Tortoise_orm,
-    generate_schemas=True,
-    add_exception_handlers=True,
-)
 
 #tips:接口划分
-v1_router=APIRouter(prefix='/api/v1',tags=['v1版本接口'])
+v1_router=APIRouter(tags=['v1版本接口'],prefix='/api/v1')
 
-user_router=APIRouter(tags=['用户接口'],prefix='/user')
-item_router=APIRouter(tags=['商品接口'],prefix='/item')
+user_router=APIRouter(prefix='/user')
+item_router=APIRouter(prefix='/item')
 
-v1_router.include_router(user_router)
-v1_router.include_router(item_router)
 
-app.include_router(v1_router)
+
+@app.middleware('http')
+async def  middleware(request: Request,call_next):
+    print('请求前被调用')
+    response = await call_next(request)
+
+    print('请求后调用')
+    return response
 
 #tips:数据表设置
 class UserTB(Model):
@@ -113,6 +94,47 @@ async def get_user_info():
 async def get_item_info():
     return '商品信息'
 
+
+
+#tips:数据库设置
+from typing import Dict
+
+# tips:数据库配置 非常像django中的写法
+Tortoise_orm: Dict = {
+    'connections': {
+        'default': 'mysql://niko:HHCzio20@localhost:3306/fastapidb3'
+    },
+    'apps': {
+        'models': {
+            'models': ['integration', 'aerich.models'],  # tips 指定模型现在在哪里，这个是整合，所有都写一起了，所以就是当前这个文件
+            'default_connection': 'default',  # tips:指定使用我们上面定义的默认数据库连接
+        }
+    },
+    # important:连接池配置(推荐)
+    'use_tz': False,  # 是否使用时区
+    'timezone': 'UTC',  # 默认时区
+    'db_pool': {
+        'max_size': 10,  # 最大连接数
+        'min_size': 1,  # 最小连接数
+        'idle_timeout': 30,  # 空闲连接超时(秒)
+    }
+}
+
+register_tortoise(
+    app,
+    config=Tortoise_orm,
+    # generate_schemas=True,
+    add_exception_handlers=True,
+)
+
+# tips:如果是单个文件不作拆分的话就得非常关注这个顺序!!
+v1_router.include_router(user_router)
+v1_router.include_router(item_router)
+
+app.include_router(v1_router)
+
+if __name__ == '__main__':
+    uvicorn.run('integration:app', host='127.0.0.1', port=8099, reload=True)
 
 
 
