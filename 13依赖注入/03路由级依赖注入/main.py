@@ -1,13 +1,14 @@
 # @Time    : 2026/1/2 21:08
 # @Author  : hero
 # @File    : main.py
+from typing import Annotated
 
 #tips:所谓路由级的依赖注入就是将其注册到整个路由当中
 # 譬如，对用户数据做任何操作时都要检查token
 from fastapi import FastAPI, Depends, APIRouter, Header, HTTPException
 
 app = FastAPI()
-async def check_auth(token:str=Header(...)):
+async def check_auth(token:Annotated[str,Header(...)]):
     if token != 'linuxforlinkeverythings':
         raise HTTPException(status_code=401, detail='Unauthorized')
     else:
