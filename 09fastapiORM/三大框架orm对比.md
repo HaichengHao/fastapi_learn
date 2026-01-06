@@ -103,10 +103,10 @@ class User(Model):
 
 ### 4. 分页（Pagination）
 
-| 框架 | 示例 |
-|------|------|
-| **Flask-SQLAlchemy** | ```page = request.args.get('page', 1, type=int)<br>users = User.query.paginate(page=page, per_page=10)``` |
-| **Django ORM** | ```from django.core.paginator import Paginator<br>p = Paginator(User.objects.all(), 10)<br>page_obj = p.get_page(page_num)``` |
+| 框架 | 示例                                                                                                                                |
+|------|-----------------------------------------------------------------------------------------------------------------------------------|
+| **Flask-SQLAlchemy** | ```page = request.args.get('page', 1, type=int)  users = User.query.paginate(page=page, per_page=10)```                           |
+| **Django ORM** | ```from django.core.paginator import Paginator  p = Paginator(User.objects.all(), 10)<br>page_obj = p.get_page(page_num)```       |
 | **Tortoise-ORM** | ```result = await User.paginate(page=1, size=10)<br># 返回: { "items": [...], "total": 100, "page": 1, "size": 10, "pages": 10 }``` |
 
 > ✅ Tortoise 分页最简洁，且返回结构标准化。
