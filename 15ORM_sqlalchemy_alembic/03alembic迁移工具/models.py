@@ -242,5 +242,36 @@ if __name__ == '__main__':
         #tips:查询工资第一高的
         hsa = session.execute(select(func.max(Employee.salary))).scalar()
         hieste = session.execute(select(Employee.name).where(Employee.salary==hsa)).scalars().all()
-        print(hieste)
+        print(hieste[0])
+
+
+        #important:分页查询操作
+        # limit函数可以限制查询的时候只查询前几行数据,属于top-N操作
+        # offset函数可以限制查找数据的时候过滤前面多少条，可指定开始查询时的偏移量
+
+        #tips:查询前三条数据
+        top3 = session.execute(select(Employee).offset(0).limit(3)).scalars()
+        for emp in top3:
+            print(emp)
+
+
+
+        #important:排序,默认升序
+        lesssalary = session.execute(select(Employee).order_by(Employee.salary).limit(3)).scalars()
+        for emp in lesssalary:
+            print(emp)
+        #tips:降序
+
+        highrank = session.execute(select(Employee).order_by(Employee.salary.desc()).limit(3)).scalars()
+        for emp in highrank:
+            print(emp)
+
+
+        #important:分组查询,查询有多少男性,并以id进行分组
+        allmale = session.execute(select(Employee.gender,func.count(Employee.id)).group_by(Employee.gender)).all()
+        for o in allmale:
+            print(type(o))
+            print(o)
+            print(o.gender.value,o.count) #tips:前一个参数拿到的是性别枚举类的值,后面拿到的是其数量
+
 

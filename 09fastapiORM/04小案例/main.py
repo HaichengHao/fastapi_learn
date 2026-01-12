@@ -12,7 +12,7 @@ app = FastAPI()
 register_tortoise(
     app=app,
     config=Tortoise_orm,
-    # generate_schemas=True,  # tips:这是一定要写的
+    # generate_schemas=True,  # tips:这是一定要写的，但是本例子中只是操作已经有的表，所以不用再次生成了
     # add_exception_handlers=True
 )
 app.include_router(stu_router, prefix='/students')

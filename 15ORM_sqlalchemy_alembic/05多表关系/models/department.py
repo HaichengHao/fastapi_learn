@@ -1,0 +1,30 @@
+# @Time    : 2026/1/12 13:48
+# @Author  : hero
+# @File    : department.py
+from tomlkit.items import Integer, String
+from  typing import Optional
+
+from . import Base
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+
+class Department(Base):
+    __tablename__ = 'department'
+    id :Mapped[int] = mapped_column(primary_key=True
+                                     ,autoincrement=True)
+
+    name:Mapped[str]=mapped_column(String(40),name='dname',unique=True,nullable=False)
+    city:Mapped[Optional[str]]=mapped_column(String(40)) #可以为空
+
+    #important:定义关联属性,一个部门有多个员工,所以外键设置在员工表中，这边设置relationship,和之前学flask的时候很像
+    # 双向关系不是必须的,但是在某些情况下会非常方便，譬如我们可以用员工表来回调查询部门表获取员工对应的部门表中的详细信息
+
+    #tips:一个部门下的所有员工,由于其已经不是一个字段而是一个集合了，所以不能用column来对应单个字段了
+    # back_populates:回调属性，或者说是关联属性,就很像flask中的backref
+    # emp_lst:Mapped[list['Employee']]  =  relationship('Employee',back_populates='dep_name')
+
+    #important:“本部门（Department 实例）可以通过 emp_lst 属性访问它所有的员工（Employee 对象列表）。
+    # 而每个员工对象内部，有一个叫 dep_name 的属性，可以反向指回这个部门。”
+    emp_lst:Mapped[list['Employee']]  =  relationship(back_populates='dep_name')
+
+
