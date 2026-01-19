@@ -4,7 +4,7 @@
 
 # 📘 SQLModel + Alembic 速查表（FastAPI 专用）
 
-> ✅ 基于 **SQLModel v0.0.22+** + **Alembic v1.13+** + **PostgreSQL / SQLite**  
+> ✅ 基于 **SQLModel v0.0.22+** + **Alembic v1.13+** + **PostgreSQL / SQLite**
 > ✅ 支持 **异步（Async）** 和 **同步（Sync）**（本表以 **异步为主**）
 
 ---
@@ -77,7 +77,7 @@ from sqlmodel import SQLModel, Field
 from typing import Optional
 
 class User(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)  #或者写成Annotated模式的也是值得推荐的
     name: str = Field(max_length=100)
     email: str = Field(unique=True, max_length=255)
     is_active: bool = Field(default=True)
@@ -88,6 +88,7 @@ class User(SQLModel, table=True):
 ```
 
 > ✅ 自动同时作为：
+>
 > - SQLAlchemy 表模型（用于 DB）
 > - Pydantic 模型（用于 API 请求/响应）
 
@@ -208,16 +209,18 @@ else:
 
 ## 七、常用 Alembic 命令
 
-| 操作 | 命令 |
-|------|------|
-| 生成新迁移 | `alembic revision --autogenerate -m "add user table"` |
-| 应用迁移 | `alembic upgrade head` |
-| 回滚一次 | `alembic downgrade -1` |
-| 查看历史 | `alembic history` |
-| 查看当前版本 | `alembic current` |
-| 创建空迁移（手动写） | `alembic revision -m "custom sql"` |
+
+| 操作                 | 命令                                                  |
+| -------------------- | ----------------------------------------------------- |
+| 生成新迁移           | `alembic revision --autogenerate -m "add user table"` |
+| 应用迁移             | `alembic upgrade head`                                |
+| 回滚一次             | `alembic downgrade -1`                                |
+| 查看历史             | `alembic history`                                     |
+| 查看当前版本         | `alembic current`                                     |
+| 创建空迁移（手动写） | `alembic revision -m "custom sql"`                    |
 
 > ✅ `--autogenerate` 能自动检测：
+>
 > - 新增/删除表
 > - 新增/删除列
 > - 修改列类型（部分支持）

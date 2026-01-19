@@ -1,11 +1,12 @@
 # @Time    : 2026/1/12 13:48
 # @Author  : hero
 # @File    : department.py
-from tomlkit.items import Integer, String
+
 from  typing import Optional
 
 from . import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Integer, String, ForeignKey
 
 
 class Department(Base):
@@ -28,3 +29,12 @@ class Department(Base):
     emp_lst:Mapped[list['Employee']]  =  relationship(back_populates='dep_name')
 
 
+    #tips:实现自关联
+    #tips:定义一个外键pid,关联到父机构id
+    pid:Mapped[Optional[int]]=mapped_column(ForeignKey('department.id'),nullable=True) #自己关联自己,所以外键就是自己的主键,允许为空，因为顶级机构没有父机构
+
+    #tips:定义关联属性
+    # 当前机构的所有子机构列表
+    children:Mapped[list['Department']] = relationship(back_populates='parentname')
+    # 当前机构的父机构
+    parentname:Mapped[Optional['Department']] = relationship(back_populates='children',remote_side=[id]) #important:自关联的时候一定要加上

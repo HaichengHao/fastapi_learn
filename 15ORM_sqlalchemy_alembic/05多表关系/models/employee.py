@@ -46,9 +46,26 @@ class Employee(Base, TimestampMixin):
     entry_date: Mapped[date] = mapped_column(DateTime, insert_default=func.now(), nullable=False, comment='入职时间')
 
     #tips:设置一个外键位,因为一个部门有多个员工
-    dep_id:Mapped[int]=mapped_column(ForeignKey('department.id'),nullable=False,)
+    dep_id:Mapped[Optional[int]]=mapped_column(ForeignKey('department.id'))
     #tips:员工类中也要关联属性
-    # 定义一个关联属性：该员工所处的部门,一个员工对应一个部门,所以其类型
-    dep_name: Mapped[Optional['Department']] = relationship('Department',back_populates='emp_lst')
+    # 定义一个关联属性：该员工所处的部门,一个员工对应一个部门,所以其类型写的也是Department类型的,不过要指定其可选，避免污染已有数据
+    dep_name: Mapped[Optional['Department']] = relationship(back_populates='emp_lst')
+
+    #tips:添加关联关系,主表不用写single_paret
+    idc:Mapped[Optional['IDCard']]=relationship( back_populates='emp')
+
     def __str__(self):
         return f'{self.name},{self.salary},{self.bonus},{self.gender}'
+
+
+class  IDCard(Base):
+    __tablename__ = 'id_card'
+    id:Mapped[int] = mapped_column(primary_key=True,autoincrement=True)
+    card_number:Mapped[str]=mapped_column(String(18),unique=True,nullable=False,comment='身份证号码')
+
+    native_place:Mapped[Optional[str]]=mapped_column(String(40),nullable=True,comment='籍贯信息')
+
+    #tips:添加外键约束,由于是一对一关联关系,所以在emp表或者idc表添加都可以
+    emp_id :Mapped[int] = mapped_column(ForeignKey('employee.id'))
+    #tips:设置关联属性,设置single_parent表示一个从表只能关联一个主表的记录,譬如一个身份证只能对应一名员工,不能一个身份证对应多个员工
+    emp:Mapped[Optional['Employee']] = relationship(single_parent=True,back_populates='idc')
