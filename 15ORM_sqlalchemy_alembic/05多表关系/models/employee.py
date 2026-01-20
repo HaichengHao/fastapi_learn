@@ -51,7 +51,7 @@ class Employee(Base, TimestampMixin):
     # 定义一个关联属性：该员工所处的部门,一个员工对应一个部门,所以其类型写的也是Department类型的,不过要指定其可选，避免污染已有数据
     dep_name: Mapped[Optional['Department']] = relationship(back_populates='emp_lst')
 
-    #tips:添加关联关系,主表不用写single_paret
+    #tips:添加关联关系,主表不用写single_parent
     idc:Mapped[Optional['IDCard']]=relationship( back_populates='emp')
 
     def __str__(self):

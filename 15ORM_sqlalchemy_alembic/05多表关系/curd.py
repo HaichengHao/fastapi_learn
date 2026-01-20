@@ -15,13 +15,67 @@ engine = create_engine(
 
 if __name__ == '__main__':
     with sessionmaker(engine).begin() as session:
+
+
+
+        # important:关联复杂查询
+
+        # 查询2026年入职的员工名以及该员工所在的部门名称
+        # extract就是我们想要抽取的内容,我们利用extract从Employee表的entry_date字段中抽取出年份
+        stmt = Select(Employee.name, Department.name).join(Department).where(
+            extract('year', Employee.entry_date) == 2026)
+        result = session.execute(stmt)
+        for row in result:
+            print(row.name, row.name_1)
+
+        #tips:或者我们还有别的解决方案,利用别名方式来更方便取值
+        stmt2 = Select(Employee.name.label('ename'),Department.name.label('dname')).join(Department,isouter=True).where(extract('year', Employee.entry_date) == 2026)
+        res   = session.execute(stmt2)
+        for row in res:
+            print(row.ename, row.dname)
+
+
+        #tips:查询身份号码是103387200011110666的员工姓名以及其所属部门
+        stmt3 = Select(Employee.name.label('ename'),Department.name.label('dname')).join(IDCard).join(Department,isouter=True).where(IDCard.card_number == "103387200011110666")
+        res = session.execute(stmt3)
+        for row in res:
+            print(row.ename, row.dname)
+
+
+        #tips:查询每个部门的名字以及部门下的员工个数
+
+        #语句思路:选择外连接,
+        stmt4 = Select(Department.name.label('dname'),func.count(Employee.id).label('ecount')).join(Employee,isouter=True).group_by(Department.id)
+        res = session.execute(stmt4)
+        for row in res:
+            print(row.dname,row.ecount)
+
+        #tips:查询每个部门的名字,city以及部门下的员工个数
+        #可以去department.py中改写表的__str__返回
+        stmt5 = Select(Department,func.count(Employee.id).label('ecount')).join(Employee,isouter=True).group_by(Department.id)
+        res = session.execute(stmt5)
+        for row in res:
+            print(row[0],row[1])
+
+
+        #tips:查询每个部门的名字以及它里面的员工数量,并且按照员工数量的个数降低序排序
+        stmt6 = Select(Department.name,func.count(Employee.id).label('ecount')).join(Employee,isouter=True).group_by(Department.id).order_by(desc('emp_count'))
+        res = session.execute(stmt6)
+        for row in res:
+            print(row[0],row[1])
+        #important:一对一操作RUD
+        '''
         #tips:给id为1的员工绑定身份证号码
         # idc = IDCard(card_number='103387200011110666',native_place='北京',emp_id=1)
         # session.add(idc)
 
         #tips:通过员工表查询其身份证号码
         EMP1= session.get(Employee,1)
-        print(EMP1.idc.card_number)
+        print(EMP1.idc.card_number)  #important:因为其是一对一关联关系,而且EMP1是一个Employee对象,根据大象类型,其对应的.idc其实是IDCard对象,然后我们利用了这个拿到了它的属性card_number
+        '''
+
+
+        #important:crud
         '''
         # dep1 = Department(name='深圳总公司', city='深圳')  #tips:创立总公司记录
         # session.add(dep1)
@@ -114,7 +168,6 @@ if __name__ == '__main__':
      emplisi = session.get(Employee,2)
      emplisi.dep_id = None
  '''
-
 
 
 

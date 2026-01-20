@@ -38,3 +38,6 @@ class Department(Base):
     children:Mapped[list['Department']] = relationship(back_populates='parentname')
     # 当前机构的父机构
     parentname:Mapped[Optional['Department']] = relationship(back_populates='children',remote_side=[id]) #important:自关联的时候一定要加上
+
+    def __str__(self):
+        return f'{self.name},{self.city},{self.id}'
