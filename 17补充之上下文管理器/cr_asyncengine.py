@@ -16,7 +16,7 @@ engine = create_async_engine(
     echo=True
 )
 
-#important:创建一个异步函数用于声明周期事件
+#important:创建一个异步函数用于生命周期事件
 
 async def init_db():
     async with engine.begin() as conn:

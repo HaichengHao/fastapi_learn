@@ -39,7 +39,7 @@ def start_with_z(value):
 
 #tips:定义一个路由来实现判断输入的字符串是否以z开头
 @app.get('/startwithz',description='判断输入的字符串是不是以Z开头')
-async def start_with_z(ustr:Annotated[str,BeforeValidator(start_with_z)]): #tips:前验证器可以让在输入验证前判断
+async def start_with_z(ustr:Annotated[str,BeforeValidator(start_with_z)]): #tips:前验证器可以让在输入验证前判断,学完依赖注入后发现其本质就是依赖注入的封装!!❗❗❗❗❗
     return {
         'msg':ustr
     }

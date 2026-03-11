@@ -27,7 +27,7 @@ async def upload_file(file: UploadFile):#tips:它是要比File方式更好的，
 @app.post('/download/')
 async def download_file(file:UploadFile):
     downloaddir = './demopic'
-    os.makedirs(downloaddir,exist_ok=True)
+    os.makedirs(downloaddir,exist_ok=True) #important:有了这个os.mkdirs就不用写if逻辑判断了,它会帮我们判断是否存在然后给我们创建
     safe_filename=f"{uuidlib.uuid4().hex}{os.path.splitext(file.filename)[1]}"
     filepath = os.path.join(downloaddir, safe_filename)
     # with open(filepath, 'wb') as f:
