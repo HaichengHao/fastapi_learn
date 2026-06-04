@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FastAPI 流式输出演示</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    #output {
+      background: #f4f4f4;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-top: 10px;
+      white-space: pre-wrap; /* 保留换行和空格 */
+      height: 300px;
+      overflow-y: auto;
+    }
+    button {
+      padding: 8px 16px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h2>FastAPI 流式故事输出</h2>
+  <button onclick="startStream()">开始流式加载</button>
+  <div id="output"></div>
+
+  <script>
+    async function startStream() {
+      const output = document.getElementById('output');
+      output.innerHTML = ''; // 清空之前的内容
+      output.innerText = '';
+
+      try {
+        const response = await fetch('http://127.0.0.1:8000/chat/stream',{
+            method:'GET'
+        });
+        if (!response.ok) throw new Error('网络响应失败');
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer='';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          // buffer+=decoder.decode(value,{stream:true});
+          const chunk = decoder.decode(value, { stream: true });
+          buffer+=chunk;
+          output.textContent=buffer;
+          // 自动滚动到底部
+          output.scrollTop = output.scrollHeight;
+        }
+
+        console.log('流式传输完成');
+      } catch (err) {
+        console.error('流式请求出错:', err);
+        output.textContent += '\n[错误] ' + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
