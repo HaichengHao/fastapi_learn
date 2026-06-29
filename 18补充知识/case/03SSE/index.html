@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SSE Chat Demo</title>
+</head>
+<body>
+    <h2>SSE 流式聊天</h2>
+    <input type="text" id="userInput" placeholder="输入你的问题..." />
+    <button onclick="startChat()">发送</button>
+    <div id="output" style="margin-top: 20px; white-space: pre-wrap;"></div>
+
+    <script>
+        function startChat() {
+            const input = document.getElementById("userInput").value;
+            if (!input.trim()) return;
+
+            // 清空输出
+            document.getElementById("output").innerText = "";
+
+            // 构造 SSE URL（注意编码）
+            const url = `/chat/sse?user_input=${encodeURIComponent(input)}`;
+            const eventSource = new EventSource(url);
+
+            eventSource.onmessage = function(event) {
+                const data = event.data;
+                if (data === "[DONE]") {
+                    console.log("流结束");
+                    eventSource.close();
+                    return;
+                }
+
+                try {
+                    // 如果后端发的是 JSON 字符串（如 "hello"），直接拼接
+                    // 注意：langchain 的 chunk 是字符串，不是对象
+                    const text = JSON.parse(data);
+                    document.getElementById("output").innerText += text;
+                } catch (e) {
+                    console.error("解析错误:", data, e);
+                }
+            };
+
+            eventSource.onerror = function(err) {
+                console.error("SSE Error:", err);
+                eventSource.close();
+            };
+        }
+    </script>
+</body>
+</html>
