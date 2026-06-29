@@ -1,10 +1,10 @@
 """
 @File    :main.py
 @Editor  : 百年
-@Date    :2026/6/29 10:24 
+@Date    :2026/6/29 10:33 
 """
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Request,Header
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from langchain.chat_models import init_chat_model
@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 import uvicorn
 import os
 import json
+import asyncio
 
 load_dotenv()
 
@@ -43,23 +44,50 @@ chat_prompt_template = ChatPromptTemplate(
 chain = chat_prompt_template | llm | StrOutputParser()
 
 
-def generate_sse_stream(user_input: str):
-    """生成符合 SSE 格式的流"""
+async def generate_sse_stream_async(user_input: str):
+    """异步生成 SSE 流"""
     try:
-        for chunk in chain.stream({"user_input": user_input}):
+        # 使用 astream 异步流
+        async for chunk in chain.astream({"user_input": user_input}):
             if chunk:
-                # SSE 要求 data 行以 "data: " 开头，结尾双换行
+                # 发送 data: ... 格式
                 yield f"data: {json.dumps(chunk)}\n\n"
-        # 发送结束信号（可选）
+                # 可选：加一点延迟避免太快（一般不需要）
+                # await asyncio.sleep(0.01)
         yield "data: [DONE]\n\n"
     except Exception as e:
-        yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        error_msg = {"error": str(e)}
+        yield f"data: {json.dumps(error_msg)}\n\n"
+
+#带token认证
+@app.get("/chat/sse")
+async def sse_chat(
+    request: Request,
+    user_input: str = Query(...),
+    authorization: str = Header(...)
+):
+    # 验证 token
+    if not authorization.startswith("Bearer "):
+        yield "data: {\"error\": \"Invalid token\"}\n\n"
+        return
+
+    token = authorization[7:]
+    if token != "your-secret-token":
+        yield "data: {\"error\": \"Unauthorized\"}\n\n"
+        return
+
+    async for chunk in generate_sse_stream_async(user_input):
+        yield chunk
 
 
 @app.get("/chat/sse")
-async def sse_chat(user_input: str = Query(..., description="用户输入")):
+async def sse_chat(request: Request, user_input: str = Query(...)):
+    """
+    SSE 接口，支持异步流式响应
+    注意：FastAPI 自动处理 AsyncGenerator
+    """
     return StreamingResponse(
-        generate_sse_stream(user_input),
+        generate_sse_stream_async(user_input),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
